@@ -6,10 +6,11 @@ fn main() {
         display_prompt();
         let line = read_line();
         let command_line: Vec<&str> = line.split(' ').collect();
-        let command = command_line[0];
-        execute_command(&command);
-        if command.to_string().trim().to_uppercase() == "EXIT" {
-            break;
+        let command: &str = &command_line[0].to_string().trim().to_uppercase();
+        match command {
+            "EXIT" => break,
+            "CREATE" => create_command(command_line[1..].to_vec()),
+            _ => println!("I just don't understand you")
         }
     }
 }
@@ -27,6 +28,13 @@ fn display_prompt() {
     io::stdout().flush().expect("Failed to flush stdout");
 }
 
-fn execute_command(command: &str) {
-    println!("Command: {}", command);
+fn create_command(args: Vec<&str>) {
+
+    if args.len() != 2 {
+        println!("You messed up!!! Create takes two parameters.")
+    }    
+    
+    for arg in &args {
+        println!("{}", arg);
+    }
 }
