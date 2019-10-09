@@ -1,0 +1,6 @@
+[package]
+name = "listdb"
+version = "0.1.0"
+authors = ["John Hallat <jhallat@gmail.com>"]
+
+[dependencies]
