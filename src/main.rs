@@ -1,7 +1,14 @@
 use std::io;
 use std::io::prelude::*;
+use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 
 fn main() {
+
+    let properties = load_properties();
+    let data_home = properties.get(&String::from("DATA_HOME")); 
+    println!("{:?}", data_home);
     loop {
         display_prompt();
         let line = read_line();
@@ -37,4 +44,18 @@ fn create_command(args: Vec<&str>) {
     for arg in &args {
         println!("{}", arg);
     }
+}
+
+fn load_properties() -> HashMap<String, String> {
+
+    let mut properties = HashMap::new();
+
+    let contents = fs::read_to_string("listdb.properties")
+        .expect("I can read the properties file :-(");
+
+    //TODO need to read in more than one property
+    let property_values: Vec<&str> = contents.split('=').collect();
+    properties.insert(property_values[0].to_string(), property_values[1].to_string());
+
+    properties
 }
