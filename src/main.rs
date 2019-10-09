@@ -2,10 +2,16 @@ use std::io;
 use std::io::prelude::*;
 
 fn main() {
-    display_prompt();
-    let name = read_line();
-    execute_command(name);
-
+    loop {
+        display_prompt();
+        let line = read_line();
+        let command_line: Vec<&str> = line.split(' ').collect();
+        let command = command_line[0];
+        execute_command(&command);
+        if command.to_string().trim().to_uppercase() == "EXIT" {
+            break;
+        }
+    }
 }
 
 fn read_line() -> String {
@@ -17,10 +23,10 @@ fn read_line() -> String {
 }
 
 fn display_prompt() {
-    print!(">");
+    print!("> ");
     io::stdout().flush().expect("Failed to flush stdout");
 }
 
-fn execute_command(command: String) {
+fn execute_command(command: &str) {
     println!("Command: {}", command);
 }
