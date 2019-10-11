@@ -7,6 +7,8 @@ use properties::Properties;
 
 mod properties;
 
+const ERROR_LABEL : &str = "\u{CA0}_\u{CA0} ";
+
 const DATA_HOME_PROPERTY : &str = "data.home";
 
 const PROPERTY_FILE : &str = "listdb.properties";
@@ -30,7 +32,7 @@ fn main() {
         match command {
             "EXIT" => break,
             "CREATE" => create_command(&command_line[1..]),
-            _ => println!("I just don't understand you")
+            _ => println!("{} I just don't understand you", ERROR_LABEL)
         }
     }
 }
@@ -51,7 +53,7 @@ fn display_prompt() {
 fn create_command(args: &[&str]) {
 
     if args.len() != 2 {
-        println!("You messed up!!! Create takes two parameters.")
+        println!("{} You messed up!!! Create takes two parameters.", ERROR_LABEL);
     }    
     
     for arg in args {
