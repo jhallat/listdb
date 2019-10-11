@@ -1,9 +1,11 @@
-  use std::fs;
-  use std::collections::HashMap;
+use std::io::{self, BufReader};
+use std::io::prelude::*;
+use std::fs::File;
+use std::collections::HashMap;
 
-  pub struct Properties {
+pub struct Properties {
     property_map: HashMap<String, String>
-  }
+}
 
 impl Properties {
     pub fn new() -> Properties {
@@ -14,12 +16,15 @@ impl Properties {
 
     pub fn load(&mut self, prop_file_name: &str) {
        self.property_map.clear();
-       let contents = fs::read_to_string(prop_file_name)
-            .expect("I can't read the properties file :-(");
-       let property_lines: Vec<&str> = contents.split("\r\n").collect();
-       for property_line in property_lines {
+       let file = File::open(prop_file_name)
+          .expect("I tried, but I can't open the property file.");
+       let buffer = BufReader::new(file);
+         
+       for property_line in buffer.lines() {
+           let contents = property_line.unwrap();
            let property_values: Vec<&str> = contents.split('=').collect();
-           self.property_map.insert(property_values[0].to_string(), property_values[1].to_string());
+           println!("{:?}", property_values);
+           self.property_map.insert(property_values[0].to_string().trim().to_string(), property_values[1].to_string().trim().to_string());
         }
     }
 
@@ -36,6 +41,8 @@ impl Properties {
 mod tests {
 
     use super::*;
+    use std::fs::File;
+    use std::io::{self, BufReader};
 
     #[test]
     fn load_and_read_properties() {
