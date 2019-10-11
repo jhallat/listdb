@@ -7,15 +7,21 @@ use properties::Properties;
 
 mod properties;
 
+const DATA_HOME_PROPERTY : &str = "data.home";
+
+const PROPERTY_FILE : &str = "listdb.properties";
+
 fn main() {
 
-    let properties = Properties::new();
-    //let properties = load_properties();
-    //let data_home = properties.get(&String::from("data.home")); 
-    //match data_home {
-    //    Some(value) => println!("data.home = {}", value),
-    //    None => println!("I have no home")
-    //}
+    let mut properties = Properties::new();
+    properties.load(PROPERTY_FILE);
+    let data_home = properties.get(DATA_HOME_PROPERTY);
+    let passed = health_check(&data_home);
+    if passed {
+        println!("Health check passed");
+    } else {
+        println!("I am not feeling well. I am going to rest now.");
+    }
     loop {
         display_prompt();
         let line = read_line();
@@ -53,17 +59,12 @@ fn create_command(args: &[&str]) {
     }
 }
 
-fn load_properties() -> HashMap<String, String> {
-
-    let mut properties = HashMap::new();
-
-    let contents = fs::read_to_string("listdb.properties")
-        .expect("I can read the properties file :-(");
-
-    //TODO need to read in more than one property
-    let property_values: Vec<&str> = contents.split('=').collect();
-    properties.insert(property_values[0].to_string(), property_values[1].to_string());
-
-    properties
+fn health_check(db_home: &str) -> bool {
+    if !Path::new(&db_home).exists() {
+        match fs::create_dir_all(&db_home) {
+            Ok(_) => return true,
+            Err(_) => return false
+        }
+    }
+    return true
 }
-

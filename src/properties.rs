@@ -23,8 +23,8 @@ impl Properties {
        for property_line in buffer.lines() {
            let contents = property_line.unwrap();
            let property_values: Vec<&str> = contents.split('=').collect();
-           println!("{:?}", property_values);
-           self.property_map.insert(property_values[0].to_string().trim().to_string(), property_values[1].to_string().trim().to_string());
+           self.property_map.insert(property_values[0].to_string().trim().to_string(), 
+                                    property_values[1].to_string().trim().to_string());
         }
     }
 
