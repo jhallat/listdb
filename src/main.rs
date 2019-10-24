@@ -32,6 +32,7 @@ fn main() {
         match command {
             "EXIT" => break,
             "CREATE" => create_command(&command_line[1..]),
+            "STATUS" => display_status(&properties),
             _ => println!("{} I just don't understand you", ERROR_LABEL)
         }
     }
@@ -50,15 +51,32 @@ fn display_prompt() {
     io::stdout().flush().expect("Failed to flush stdout");
 }
 
+fn display_status(properties: &Properties) {
+    let contents = properties.contents();
+    println!("");
+    println!("Properties");
+    println!("----------------------------------------------");
+    println!("{}", contents);
+}
+
 fn create_command(args: &[&str]) {
 
     if args.len() != 2 {
         println!("{} You messed up!!! Create takes two parameters.", ERROR_LABEL);
     }    
     
-    for arg in args {
-        println!("{}", arg);
+    let target: &str = &args[0].to_string().trim().to_uppercase();
+    match target {
+        "TOPIC" => create_topic(args[1]),
+        _ => println!("{} I don't know how to create a {}", ERROR_LABEL, args[0])
     }
+
+}
+
+fn create_topic(topic_id: &str) {
+    //Ensure topic does not already exist
+    //Create a file with the name {id}.tpc
+    println!("Implement creation of topic {}", topic_id);
 }
 
 fn health_check(db_home: &str) -> bool {

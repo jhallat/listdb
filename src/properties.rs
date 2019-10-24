@@ -35,6 +35,17 @@ impl Properties {
        }
     }
 
+    pub fn contents(&self) -> String {
+        let mut contents = String::new();
+        for (key, value) in &self.property_map {
+            contents.push_str(&key);
+            contents.push_str(": ");
+            contents.push_str(&value);
+            contents.push_str("\n");
+        }
+        contents
+    }
+
 }
 
 #[cfg(test)]
@@ -52,6 +63,15 @@ mod tests {
         let test_two = properties.get("test.two");
         assert_eq!(test_one, "testone");
         assert_eq!(test_two, "testtwo");
+    }
+
+    #[test]
+    fn return_contents() {
+        let mut properties = Properties::new();
+        properties.load("test/resources/test.properties");
+        let actual = properties.contents();
+        let expected = String::from("test.one: testone\ntest.two: testtwo\n");
+        assert_eq!(actual, expected);
     }
 
 }
