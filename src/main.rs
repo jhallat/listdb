@@ -6,8 +6,8 @@ use std::path::Path;
 use properties::Properties;
 
 mod properties;
-
-const ERROR_LABEL : &str = "\u{CA0}_\u{CA0} ";
+mod object_creation;
+mod log_constants;
 
 const DATA_HOME_PROPERTY : &str = "data.home";
 
@@ -17,8 +17,8 @@ fn main() {
 
     let mut properties = Properties::new();
     properties.load(PROPERTY_FILE);
-    let data_home = properties.get(DATA_HOME_PROPERTY);
-    let passed = health_check(&data_home);
+    let db_home = properties.get(DATA_HOME_PROPERTY);
+    let passed = health_check(&db_home);
     if passed {
         println!("Health check passed");
     } else {
@@ -31,9 +31,9 @@ fn main() {
         let command: &str = &command_line[0].to_string().trim().to_uppercase();
         match command {
             "EXIT" => break,
-            "CREATE" => create_command(&command_line[1..]),
+            "CREATE" => object_creation::create_command(&db_home, &command_line[1..]),
             "STATUS" => display_status(&properties),
-            _ => println!("{} I just don't understand you", ERROR_LABEL)
+            _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
         }
     }
 }
@@ -59,25 +59,7 @@ fn display_status(properties: &Properties) {
     println!("{}", contents);
 }
 
-fn create_command(args: &[&str]) {
 
-    if args.len() != 2 {
-        println!("{} You messed up!!! Create takes two parameters.", ERROR_LABEL);
-    }    
-    
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    match target {
-        "TOPIC" => create_topic(args[1]),
-        _ => println!("{} I don't know how to create a {}", ERROR_LABEL, args[0])
-    }
-
-}
-
-fn create_topic(topic_id: &str) {
-    //Ensure topic does not already exist
-    //Create a file with the name {id}.tpc
-    println!("Implement creation of topic {}", topic_id);
-}
 
 fn health_check(db_home: &str) -> bool {
     if !Path::new(&db_home).exists() {
