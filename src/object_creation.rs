@@ -6,6 +6,7 @@ pub fn create_command(db_home: &str, args: &[&str]) {
 
     if args.len() != 2 {
         println!("{} You messed up!!! Create takes two parameters.", ERROR_LABEL);
+        return
     }    
     
     let target: &str = &args[0].to_string().trim().to_uppercase();

@@ -32,6 +32,7 @@ fn main() {
         match command {
             "EXIT" => break,
             "CREATE" => object_creation::create_command(&db_home, &command_line[1..]),
+            "LIST" => list(&db_home, &command_line[1..]),
             "STATUS" => display_status(&properties),
             _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
         }
@@ -59,7 +60,35 @@ fn display_status(properties: &Properties) {
     println!("{}", contents);
 }
 
+fn list(db_home: &str, args: &[&str]) {
+    if args.len() == 0 {
+        println!("{} I need to know what you want a list of.", log_constants::ERROR_LABEL);
+        return
+    }
+    if args.len() > 1 {
+        println!("{} Only one thing at a time please.", log_constants::ERROR_LABEL);
+        return
+    }
+    let target: &str = &args[0].to_string().trim().to_uppercase();
+    match target {
+        "TOPIC" | "TOPICS" => list_topics(&db_home),
+        _ => println!("{} NOOOOO!!!!! That is not an option.", log_constants::ERROR_LABEL)
+    }
+}
 
+fn list_topics(db_home: &str) {
+
+    let files = fs::read_dir(&db_home).unwrap();
+    for file in files {
+       let path = file.unwrap().path();
+       let topic_name = path.file_stem().unwrap().to_str().unwrap(); 
+       let topic_type = path.extension().unwrap().to_str().unwrap();
+       if (topic_type == "tpc") {
+          println!("{}", topic_name);
+       }
+    }
+
+}
 
 fn health_check(db_home: &str) -> bool {
     if !Path::new(&db_home).exists() {
