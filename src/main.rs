@@ -1,13 +1,14 @@
 use std::io;
 use std::io::prelude::*;
 use std::collections::HashMap;
-use std::fs;
 use std::path::Path;
 use properties::Properties;
+use topic::Topics;
+use std::fs;
 
 mod properties;
-mod object_creation;
 mod log_constants;
+mod topic;
 
 const DATA_HOME_PROPERTY : &str = "data.home";
 
@@ -18,6 +19,9 @@ fn main() {
     let mut properties = Properties::new();
     properties.load(PROPERTY_FILE);
     let db_home = properties.get(DATA_HOME_PROPERTY);
+    let topics = Topics {
+        db_home: db_home.clone()
+    };
     let passed = health_check(&db_home);
     if passed {
         println!("Health check passed");
@@ -31,9 +35,10 @@ fn main() {
         let command: &str = &command_line[0].to_string().trim().to_uppercase();
         match command {
             "EXIT" => break,
-            "CREATE" => object_creation::create_command(&db_home, &command_line[1..]),
-            "LIST" => list(&db_home, &command_line[1..]),
+            "CREATE" => create_command(&topics, &command_line[1..]),
+            "LIST" => list(&topics, &command_line[1..]),
             "STATUS" => display_status(&properties),
+            "GOTO" => goto_item(&command_line[1..]),
             _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
         }
     }
@@ -60,7 +65,7 @@ fn display_status(properties: &Properties) {
     println!("{}", contents);
 }
 
-fn list(db_home: &str, args: &[&str]) {
+fn list(topics: &Topics, args: &[&str]) {
     if args.len() == 0 {
         println!("{} I need to know what you want a list of.", log_constants::ERROR_LABEL);
         return
@@ -71,23 +76,19 @@ fn list(db_home: &str, args: &[&str]) {
     }
     let target: &str = &args[0].to_string().trim().to_uppercase();
     match target {
-        "TOPIC" | "TOPICS" => list_topics(&db_home),
+        "TOPIC" | "TOPICS" => topics.list(),
         _ => println!("{} NOOOOO!!!!! That is not an option.", log_constants::ERROR_LABEL)
     }
 }
 
-fn list_topics(db_home: &str) {
 
-    let files = fs::read_dir(&db_home).unwrap();
-    for file in files {
-       let path = file.unwrap().path();
-       let topic_name = path.file_stem().unwrap().to_str().unwrap(); 
-       let topic_type = path.extension().unwrap().to_str().unwrap();
-       if (topic_type == "tpc") {
-          println!("{}", topic_name);
-       }
+fn goto_item(args: &[&str]) {
+    
+    if args.len() == 0 {
+        println!("{} You need to tell me where to go", log_constants::ERROR_LABEL);
+        return
     }
-
+    println!("Still not implemented");
 }
 
 fn health_check(db_home: &str) -> bool {
@@ -98,4 +99,19 @@ fn health_check(db_home: &str) -> bool {
         }
     }
     return true
+}
+
+fn create_command(topics: &Topics, args: &[&str]) {
+
+    if args.len() != 2 {
+        println!("{} You messed up!!! Create takes two parameters.", log_constants::ERROR_LABEL);
+        return
+    }    
+    
+    let target: &str = &args[0].to_string().trim().to_uppercase();
+    match target {
+        "TOPIC" => topics.create(args[1]),
+        _ => println!("{} I don't know how to create a {}", log_constants::ERROR_LABEL, args[0])
+    }
+
 }
