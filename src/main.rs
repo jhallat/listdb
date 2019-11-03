@@ -38,7 +38,7 @@ fn main() {
             "CREATE" => create_command(&topics, &command_line[1..]),
             "LIST" => list(&topics, &command_line[1..]),
             "STATUS" => display_status(&properties),
-            "GOTO" => goto_item(&command_line[1..]),
+            "OPEN" => open_item(&topics, &command_line[1..]),
             _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
         }
     }
@@ -82,13 +82,19 @@ fn list(topics: &Topics, args: &[&str]) {
 }
 
 
-fn goto_item(args: &[&str]) {
+fn open_item(topics: &Topics, args: &[&str]) {
     
-    if args.len() == 0 {
+    if args.len() != 2 {
         println!("{} You need to tell me where to go", log_constants::ERROR_LABEL);
         return
     }
-    println!("Still not implemented");
+    let target: &str = &args[0].to_string().trim().to_uppercase();
+    let target_id: &str = &args[1].to_string().trim().to_string();
+    match target {
+        "TOPIC" => topics.open(target_id),
+        _ => println!("{} NOOOOO!!!!! That is not an option.", log_constants::ERROR_LABEL)
+    }
+    
 }
 
 fn health_check(db_home: &str) -> bool {

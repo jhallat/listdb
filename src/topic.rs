@@ -1,6 +1,57 @@
 use std::path::Path;
 use std::fs::File;
 use std::fs;
+use std::io;
+use std::io::prelude::*;
+use std::fs::OpenOptions;
+use std::io::Write;
+
+struct Topic {
+  path: String,
+  id: String
+}
+
+impl Topic {
+
+  fn display_prompt(topic_id: &str) {
+      print!("({})> ", topic_id);
+      io::stdout().flush().expect("Failed to flush stdout");
+  }
+
+  fn read_line() -> String {
+      let mut input = String::new();
+      io::stdin()
+          .read_line(&mut input)
+          .expect("Failed to read line");
+      input.trim().to_string()    
+  }
+
+  fn add(&self, args: &[&str]) {
+    if args.len() == 0 {
+      println!("Nothing to add");
+      return
+    } 
+    let output = args.join(" ");
+    let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
+    file.write_all(output.as_bytes()).expect("Add failed");
+  }
+
+  fn open(&self) {
+    loop {
+      Topic::display_prompt(&self.id);
+      let line = Topic::read_line();
+      let command_line: Vec<&str> = line.split(' ').collect();
+      let command: &str = &command_line[0].to_string().trim().to_uppercase();
+      match command {
+        "CLOSE" => break,
+        "ADD" => self.add(&command_line[1..]),
+        _ => println!("Not a valid command")
+      }
+    }
+
+  }
+
+}
 
 /// Manages topics in the database
 pub struct Topics {
@@ -17,14 +68,14 @@ impl Topics {
   /// 
   /// * `topic_id` - The name of the new topic. 
   pub fn create(&self, topic_id: &str) {
-      let topic_path = format!("{}\\{}.tpc", self.db_home, topic_id);
-      let exists = Path::new(&topic_path).exists();
-      if exists {
+
+      if self.topic_exists(&topic_id) {
           //TODO Should return a status, not implement a side effect.
-          println!("The topic {} already exists.", topic_path);
+          println!("The topic {} already exists.", topic_id);
           return
       }
-      match File::create(topic_path) {
+      let topic_path = self.topic_path(topic_id);
+      match File::create(self.topic_path(topic_id)) {
           //TODO Should return a status, not implement a side effect.
           Ok(file) => println!("Topic {} created.", topic_id),
           Err(error) => println!("Error occured creating topic {}", topic_id)
@@ -44,11 +95,25 @@ impl Topics {
       }
   }
 
-  fn topic_exists(&self, topic_id: &str) {
-
+  fn topic_path(&self, topic_id: &str) -> String {
+    format!("{}\\{}.tpc", self.db_home, topic_id)
   }
 
-  pub fn goto_topic(topic_id: &str) {
+  fn topic_exists(&self, topic_id: &str) -> bool {
+    let topic_path = self.topic_path(topic_id);
+    Path::new(&topic_path).exists()
+  }
 
+  pub fn open(&self, topic_id: &str) {
+    if !self.topic_exists(&topic_id) {
+      println!("{} does not exist.", topic_id);
+      return
+    }
+    let topic_path = self.topic_path(topic_id);
+    let topic = Topic {
+      path: topic_path.to_string(),
+      id: topic_id.to_string()
+    };
+    topic.open();
   }
 }
