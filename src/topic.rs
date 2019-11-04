@@ -5,6 +5,7 @@ use std::io;
 use std::io::prelude::*;
 use std::fs::OpenOptions;
 use std::io::Write;
+use uuid::Uuid;
 
 struct Topic {
   path: String,
@@ -32,7 +33,8 @@ impl Topic {
       return
     } 
     let output = args.join(" ");
-    let output = format!("{}\n", output);
+    let id = Uuid::new_v4();
+    let output = format!("{}{}\n", id, output);
     let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
     file.write_all(output.as_bytes()).expect("Add failed");
   }

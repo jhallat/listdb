@@ -1,6 +1,9 @@
+edition = "2018"
+
 [package]
 name = "listdb"
 version = "0.1.0"
 authors = ["John Hallat <jhallat@gmail.com>"]
 
 [dependencies]
+uuid = { version = "0.8", features = ["serde", "v4"] }
