@@ -32,8 +32,22 @@ impl Topic {
       return
     } 
     let output = args.join(" ");
+    let output = format!("{}\n", output);
     let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
     file.write_all(output.as_bytes()).expect("Add failed");
+  }
+
+  fn list(&self) {
+    let mut file = OpenOptions::new().read(true).open(&self.path).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let mut lines: Vec<&str> = contents.split('\n').collect();
+    lines.pop();
+    println!("----------------------------------------------");
+    for (i, line) in lines.iter().enumerate() {
+      println!("{}: {}", i + 1, line);
+    }
+    println!("----------------------------------------------");
   }
 
   fn open(&self) {
@@ -45,6 +59,7 @@ impl Topic {
       match command {
         "CLOSE" => break,
         "ADD" => self.add(&command_line[1..]),
+        "LIST" => self.list(),
         _ => println!("Not a valid command")
       }
     }
