@@ -34,9 +34,13 @@ impl Topic {
     } 
     let output = args.join(" ");
     let id = Uuid::new_v4();
-    let output = format!("{}{}\n", id, output);
+    let output = format!("{}A{}\n", id, output);
     let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
     file.write_all(output.as_bytes()).expect("Add failed");
+  }
+
+  fn delete(&self, args: &[&str]) {
+    println!("Delete not yet implemented");
   }
 
   fn list(&self) {
@@ -47,7 +51,8 @@ impl Topic {
     lines.pop();
     println!("----------------------------------------------");
     for (i, line) in lines.iter().enumerate() {
-      println!("{}: {}", i + 1, line);
+      let output: &str = &line[37..];
+      println!("{}: {}", i + 1, output);
     }
     println!("----------------------------------------------");
   }
@@ -61,6 +66,7 @@ impl Topic {
       match command {
         "CLOSE" => break,
         "ADD" => self.add(&command_line[1..]),
+        "DELETE" => self.delete(&command_line[1..]),
         "LIST" => self.list(),
         _ => println!("Not a valid command")
       }
@@ -91,11 +97,10 @@ impl Topics {
           println!("The topic {} already exists.", topic_id);
           return
       }
-      let topic_path = self.topic_path(topic_id);
       match File::create(self.topic_path(topic_id)) {
           //TODO Should return a status, not implement a side effect.
-          Ok(file) => println!("Topic {} created.", topic_id),
-          Err(error) => println!("Error occured creating topic {}", topic_id)
+          Ok(_) => println!("Topic {} created.", topic_id),
+          Err(_) => println!("Error occured creating topic {}", topic_id)
       }
   }
 
@@ -106,7 +111,7 @@ impl Topics {
          let path = file.unwrap().path();
          let topic_name = path.file_stem().unwrap().to_str().unwrap(); 
          let topic_type = path.extension().unwrap().to_str().unwrap();
-         if (topic_type == "tpc") {
+         if topic_type == "tpc" {
             println!("{}", topic_name);
         }
       }

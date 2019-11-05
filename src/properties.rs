@@ -1,4 +1,4 @@
-use std::io::{self, BufReader};
+use std::io::{BufReader};
 use std::io::prelude::*;
 use std::fs::File;
 use std::collections::HashMap;
