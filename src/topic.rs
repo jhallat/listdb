@@ -6,13 +6,54 @@ use std::io::prelude::*;
 use std::fs::OpenOptions;
 use std::io::Write;
 use uuid::Uuid;
+use std::collections::HashMap;
+
+#[derive(Clone)]
+struct Record {
+  id: String,
+  action: String, 
+  content: String
+}
+
 
 struct Topic {
   path: String,
-  id: String
+  id: String,
+  line_map: HashMap<usize, Record> 
 }
 
 impl Topic {
+
+  pub fn new(topic_id: &str, topic_path: &str) -> Topic {
+    let mut topic = Topic {
+      path: topic_path.to_string(),
+      id: topic_id.to_string(),
+      line_map: HashMap::new()
+    };
+    let records = Topic::get_records(topic_path);
+    for (index, record) in records.iter().enumerate() {
+      topic.line_map.insert(index + 1, record.clone());
+    }
+    return topic;
+  }
+
+  fn get_records(path: &str) -> Vec<Record> {
+    let mut file = OpenOptions::new().read(true).open(path).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let mut lines: Vec<&str> = contents.split('\n').collect();
+    lines.pop();
+    let mut records: Vec<Record> = Vec::new();
+    for line in lines {
+      let record = Record {
+        id: line[0..36].to_string(),
+        action: line[36..37].to_string(),
+        content: line[37..].to_string()
+      };
+      records.push(record);
+    }
+    return records;
+  }
 
   fn display_prompt(topic_id: &str) {
       print!("({})> ", topic_id);
@@ -40,7 +81,18 @@ impl Topic {
   }
 
   fn delete(&self, args: &[&str]) {
-    println!("Delete not yet implemented");
+    if args.len() == 0 {
+      println!("Nothing to delete. Line number required");
+      return
+    }
+    let index = args[0].to_string().parse::<usize>().unwrap();
+    let record = &self.line_map.get(&index);
+    if record.is_some() {
+      println!("Correct index, but delete not implemented");
+    } else {
+      println!("No item found at position {}", index);
+    }
+    
   }
 
   fn list(&self) {
@@ -132,10 +184,7 @@ impl Topics {
       return
     }
     let topic_path = self.topic_path(topic_id);
-    let topic = Topic {
-      path: topic_path.to_string(),
-      id: topic_id.to_string()
-    };
+    let topic = Topic::new(topic_id, &topic_path);
     topic.open();
   }
 }
