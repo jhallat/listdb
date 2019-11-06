@@ -8,12 +8,15 @@ The first phase of the database is a simple command line interface. In the secon
 
 ## Currently Implemented Functions in CLI
 
-### CREATE _<target> <id>_
+### CREATE <target> <id>
+
+**target** := The object type to be created. Currently only "TOPIC" is supported.
+**id** := a unique name for the object to be created.
 
 ### LIST
 
 ### STATUS
 
-### OPEN _<target> <id>_
+### OPEN <target> <id>
 
 ### EXIT
