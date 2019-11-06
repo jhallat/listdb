@@ -37,7 +37,7 @@ Creates a new object with the specified name. Currently only support for topics 
 
 **Phase I**
 
-- [ ] Confirm Deletion
+- [x] Confirm Deletion
 - [ ] Update Record
 - [ ] Add refresh function
 - [ ] Add compact function

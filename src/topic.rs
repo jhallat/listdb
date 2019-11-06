@@ -86,6 +86,13 @@ impl Topic {
       input.trim().to_string()    
   }
 
+  fn get_confirmation() -> bool {
+    print!("y/n ? ");
+    io::stdout().flush().expect("Failed to flush stdout");
+    let response = Topic::read_line();
+    response == "Y" || response == "y"
+  }
+
   fn append_data(&self, record: &Record) {
     let output = format!("{}{}{}\n", record.id, record.action, record.content);
     let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
@@ -119,13 +126,20 @@ impl Topic {
     let record = &self.line_map.get(&index);
     if record.is_some() {
       let selected_record = record.unwrap();
-      let deleted_record = Record {
-        id: selected_record.clone(),
-        action: ACTION_DELETE.to_string(),
-        content: "-".to_string()
-      };
-      self.append_data(&deleted_record);
-      self.record_map.insert(deleted_record.id.clone(), deleted_record.clone());
+      let record_value = self.record_map.get(selected_record).unwrap();
+      let content = record_value.content.clone();
+      println!("Confirm deletion of \"{}\"", content);
+      let confirmed = Topic::get_confirmation();
+      if confirmed {
+        let deleted_record = Record {
+          id: selected_record.clone(),
+          action: ACTION_DELETE.to_string(),
+          content: "-".to_string()
+        };
+        self.append_data(&deleted_record);
+        self.record_map.insert(deleted_record.id.clone(), deleted_record.clone());
+        println!("\"{}\" deleted", content);
+      }
     } else {
       println!("No item found at position {}", index);
     }
