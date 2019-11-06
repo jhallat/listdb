@@ -1,6 +1,6 @@
 # ListDB
 
-_A simple database for **small** data_
+## _A simple database for **small** data_
 
 The goal of ListDB is to provide a lightweight database that executes CRUD operations on small lists. There are three implementations in progress: Rust, Crystal, and Ballerina. The purpose of the three implementations is to act as a comparison of the three languages to determine their suitability as a language for developing a database.
 
