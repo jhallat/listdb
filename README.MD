@@ -27,7 +27,7 @@ The first phase of the database is a simple command line interface. In the secon
 
 ### Next Items to be implemented
 
-[ ] Update Record
-[ ] Use terminal for standard output
-[ ] Add refresh function
-[ ] Add compact function
+- [ ] Update Record
+- [ ] Use terminal for standard output
+- [ ] Add refresh function
+- [ ] Add compact function
