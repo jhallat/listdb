@@ -21,6 +21,8 @@ Lists of data are stored in topics. Basic CRUD operations can be performed.
 
 Creates a new object with the specified name. Currently only support for topics is implemented.
 
+![create example](img/create-example.jpg)
+
 ### LIST
 
 ### STATUS
