@@ -68,6 +68,12 @@ impl Topic {
       input.trim().to_string()    
   }
 
+  fn append_data(&self, record: &Record) {
+    let output = format!("{}{}{}\n", record.id, record.action, record.content);
+    let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
+    file.write_all(output.as_bytes()).expect("Add failed");
+  }
+
   fn add(&self, args: &[&str]) {
     if args.len() == 0 {
       println!("Nothing to add");
@@ -75,9 +81,12 @@ impl Topic {
     } 
     let output = args.join(" ");
     let id = Uuid::new_v4();
-    let output = format!("{}A{}\n", id, output);
-    let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
-    file.write_all(output.as_bytes()).expect("Add failed");
+    let record = Record {
+      id: id.to_string(),
+      action: "A".to_string(),
+      content: output
+    };
+    self.append_data(&record);
   }
 
   fn delete(&self, args: &[&str]) {
@@ -88,7 +97,13 @@ impl Topic {
     let index = args[0].to_string().parse::<usize>().unwrap();
     let record = &self.line_map.get(&index);
     if record.is_some() {
-      println!("Correct index, but delete not implemented");
+      let selected_record = record.unwrap();
+      let deleted_record = Record {
+        id: selected_record.id.clone(),
+        action: "D".to_string(),
+        content: "-".to_string()
+      };
+      self.append_data(&deleted_record);
     } else {
       println!("No item found at position {}", index);
     }
