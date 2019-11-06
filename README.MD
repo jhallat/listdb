@@ -1,4 +1,4 @@
-# ListDB
+# ListDB (Currently in initial development)
 
 ### _A simple database for **small** data_
 
@@ -8,12 +8,18 @@ The goal of ListDB is to provide a lightweight database that executes CRUD opera
 
 The first phase of the database is a simple command line interface. In the second phase, the project will be separated into a CLI and server.
 
+## Basic Usage
+
+Lists of data are stored in topics. Basic CRUD operations can be performed.
+
 ## Currently Implemented Functions in CLI
 
 ### CREATE _\<target\> \<id\>_
 
 **target** := The object type to be created. Currently only "TOPIC" is supported.  
 **id** := a unique name for the object to be created.
+
+Creates a new object with the specified name. Currently only support for topics is implemented.
 
 ### LIST
 
@@ -27,7 +33,15 @@ The first phase of the database is a simple command line interface. In the secon
 
 ### Next Items to be implemented
 
+**Phase I**
+
+- [ ] Confirm Deletion
 - [ ] Update Record
-- [ ] Use terminal for standard output
 - [ ] Add refresh function
 - [ ] Add compact function
+
+**Phase II**
+
+- [ ] Use terminal for standard output
+- [ ] Add fields to list
+- [ ] Separate CLI and Server

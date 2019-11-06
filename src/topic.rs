@@ -8,6 +8,10 @@ use std::io::Write;
 use uuid::Uuid;
 use std::collections::HashMap;
 
+const ACTION_ADD: &str = "A";
+const ACTION_DELETE: &str = "D";
+const ACTION_UPDATE: &str = "U";
+
 #[derive(Clone)]
 struct Record {
   id: String,
@@ -82,7 +86,7 @@ impl Topic {
     file.write_all(output.as_bytes()).expect("Add failed");
   }
 
-  fn add(&self, args: &[&str]) {
+  fn add(&mut self, args: &[&str]) {
     if args.len() == 0 {
       println!("Nothing to add");
       return
@@ -91,10 +95,13 @@ impl Topic {
     let id = Uuid::new_v4();
     let record = Record {
       id: id.to_string(),
-      action: "A".to_string(),
+      action: ACTION_ADD.to_string(),
       content: output
     };
     self.append_data(&record);
+    let index = self.line_map.len() + 1;
+    self.line_map.insert(index, record.id.clone());
+    self.record_map.insert(record.id.clone(), record.clone());
   }
 
   fn delete(&self, args: &[&str]) {
@@ -135,7 +142,7 @@ impl Topic {
     println!("----------------------------------------------");
   }
 
-  fn open(&self) {
+  fn open(&mut self) {
     loop {
       Topic::display_prompt(&self.id);
       let line = Topic::read_line();
@@ -210,7 +217,7 @@ impl Topics {
       return
     }
     let topic_path = self.topic_path(topic_id);
-    let topic = Topic::new(topic_id, &topic_path);
+    let mut topic = Topic::new(topic_id, &topic_path);
     topic.open();
   }
 }
