@@ -38,7 +38,13 @@ impl Topic {
     };
     let records = Topic::get_records(topic_path);
     for record in records {
-      topic.record_map.insert(record.id.clone(), record.clone());
+      if record.action == ACTION_DELETE {
+        if topic.record_map.contains_key(&record.id) {
+          topic.record_map.remove(&record.id);
+        }
+      } else {
+        topic.record_map.insert(record.id.clone(), record.clone());
+      }
     }
     let mut index = 1;
     for value in topic.record_map.values() {
@@ -104,7 +110,7 @@ impl Topic {
     self.record_map.insert(record.id.clone(), record.clone());
   }
 
-  fn delete(&self, args: &[&str]) {
+  fn delete(&mut self, args: &[&str]) {
     if args.len() == 0 {
       println!("Nothing to delete. Line number required");
       return
@@ -115,10 +121,11 @@ impl Topic {
       let selected_record = record.unwrap();
       let deleted_record = Record {
         id: selected_record.clone(),
-        action: "D".to_string(),
+        action: ACTION_DELETE.to_string(),
         content: "-".to_string()
       };
       self.append_data(&deleted_record);
+      self.record_map.insert(deleted_record.id.clone(), deleted_record.clone());
     } else {
       println!("No item found at position {}", index);
     }
@@ -135,7 +142,9 @@ impl Topic {
         let record = self.record_map.get(record_id);
         if record.is_some() {
           let record_value = record.unwrap();
-          println!("{}: {}", index, record_value.content);
+          if record_value.action != ACTION_DELETE {
+            println!("{}: {}", index, record_value.content);
+          }
         }
       }
     }
