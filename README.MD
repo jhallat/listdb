@@ -1,6 +1,6 @@
 # ListDB
 
-## _A simple database for **small** data_
+### _A simple database for **small** data_
 
 ---
 
