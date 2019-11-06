@@ -19,7 +19,8 @@ struct Record {
 struct Topic {
   path: String,
   id: String,
-  line_map: HashMap<usize, Record> 
+  line_map: HashMap<usize, String>,
+  record_map: HashMap<String, Record>
 }
 
 impl Topic {
@@ -28,12 +29,19 @@ impl Topic {
     let mut topic = Topic {
       path: topic_path.to_string(),
       id: topic_id.to_string(),
-      line_map: HashMap::new()
+      line_map: HashMap::new(),
+      record_map: HashMap::new()
     };
     let records = Topic::get_records(topic_path);
-    for (index, record) in records.iter().enumerate() {
-      topic.line_map.insert(index + 1, record.clone());
+    for record in records {
+      topic.record_map.insert(record.id.clone(), record.clone());
     }
+    let mut index = 1;
+    for value in topic.record_map.values() {
+      topic.line_map.insert(index, value.id.clone());
+      index += 1;
+    }
+
     return topic;
   }
 
@@ -99,7 +107,7 @@ impl Topic {
     if record.is_some() {
       let selected_record = record.unwrap();
       let deleted_record = Record {
-        id: selected_record.id.clone(),
+        id: selected_record.clone(),
         action: "D".to_string(),
         content: "-".to_string()
       };
@@ -111,15 +119,18 @@ impl Topic {
   }
 
   fn list(&self) {
-    let mut file = OpenOptions::new().read(true).open(&self.path).unwrap();
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
-    let mut lines: Vec<&str> = contents.split('\n').collect();
-    lines.pop();
     println!("----------------------------------------------");
-    for (i, line) in lines.iter().enumerate() {
-      let output: &str = &line[37..];
-      println!("{}: {}", i + 1, output);
+    let record_count = self.record_map.len();
+    for index in 1..record_count + 1 {
+      let id = self.line_map.get(&index);
+      if id.is_some() {
+        let record_id = id.unwrap();
+        let record = self.record_map.get(record_id);
+        if record.is_some() {
+          let record_value = record.unwrap();
+          println!("{}: {}", index, record_value.content);
+        }
+      }
     }
     println!("----------------------------------------------");
   }
