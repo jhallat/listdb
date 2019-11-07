@@ -58,7 +58,7 @@ Displays a list of the current properties of the database.
 
 - [x] Confirm Deletion
 - [x] Update Record
-- [ ] Add refresh topic function
+- [x] Add refresh topic function
 - [ ] Add compact topic function
 
 **Phase II**
