@@ -195,6 +195,27 @@ impl Topic {
     println!("----------------------------------------------");
   }
 
+  fn refresh(&mut self) {
+    self.line_map.clear();
+    self.record_map.clear();
+
+    let records = Topic::get_records(&self.path);
+    for record in records {
+      if record.action == ACTION_DELETE {
+        if self.record_map.contains_key(&record.id) {
+          self.record_map.remove(&record.id);
+        }
+      } else {
+        self.record_map.insert(record.id.clone(), record.clone());
+      }
+    }
+    let mut index = 1;
+    for value in self.record_map.values() {
+      self.line_map.insert(index, value.id.clone());
+      index += 1;
+    }
+  }
+
   fn open(&mut self) {
     loop {
       Topic::display_prompt(&self.id);
@@ -207,6 +228,7 @@ impl Topic {
         "DELETE" => self.delete(&command_line[1..]),
         "UPDATE" => self.update(&command_line[1..]),
         "LIST" => self.list(),
+        "REFRESH" => self.refresh(),
         _ => println!("Not a valid command")
       }
     }
