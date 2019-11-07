@@ -7,6 +7,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use uuid::Uuid;
 use std::collections::HashMap;
+use chrono::prelude::*;
 
 const ACTION_ADD: &str = "A";
 const ACTION_DELETE: &str = "D";
@@ -217,7 +218,10 @@ impl Topic {
   }
 
   fn compact(&mut self) {
-    println!("Not implemented");
+    let time_stamp: DateTime<Local> = Local::now();
+    let move_path = format!("{}.bkp_{}", self.path, time_stamp.format("%Y%m%d_%H%M%S%f"));
+    fs::rename(&self.path, &move_path);
+    println!("Not implemented - copy current file to {}", move_path);
   }
 
   fn open(&mut self) {

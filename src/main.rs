@@ -1,4 +1,5 @@
 extern crate uuid;
+extern crate chrono;
 
 use std::io;
 use std::io::prelude::*;
