@@ -216,6 +216,10 @@ impl Topic {
     }
   }
 
+  fn compact(&mut self) {
+    println!("Not implemented");
+  }
+
   fn open(&mut self) {
     loop {
       Topic::display_prompt(&self.id);
@@ -298,6 +302,12 @@ impl Topics {
   }
 
   pub fn compact(&self, topic_id: &str) {
-    println!("Not currently implemented");
+        if !self.topic_exists(&topic_id) {
+      println!("{} does not exist.", topic_id);
+      return
+    }
+    let topic_path = self.topic_path(topic_id);
+    let mut topic = Topic::new(topic_id, &topic_path);
+    topic.compact();
   }
 }
