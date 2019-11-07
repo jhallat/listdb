@@ -40,6 +40,7 @@ fn main() {
             "LIST" => list(&topics, &command_line[1..]),
             "STATUS" => display_status(&properties),
             "OPEN" => open_item(&topics, &command_line[1..]),
+            "COMPACT" => compact_item(&topics, &command_line[1..]),
             _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
         }
     }
@@ -86,16 +87,29 @@ fn list(topics: &Topics, args: &[&str]) {
 fn open_item(topics: &Topics, args: &[&str]) {
     
     if args.len() != 2 {
-        println!("{} You need to tell me where to go", log_constants::ERROR_LABEL);
+        println!("{} OPEN requires a type (i.e \"TOPIC\") and id.", log_constants::ERROR_LABEL);
         return
     }
     let target: &str = &args[0].to_string().trim().to_uppercase();
     let target_id: &str = &args[1].to_string().trim().to_string();
     match target {
         "TOPIC" => topics.open(target_id),
-        _ => println!("{} NOOOOO!!!!! That is not an option.", log_constants::ERROR_LABEL)
+        _ => println!("{} {} Is not a valid type.", log_constants::ERROR_LABEL, target)
     }
     
+}
+
+fn compact_item(topics: &Topics, args: &[&str]) {
+    if args.len() != 2 {
+        println!("{} OPEN requires a type (i.e \"TOPIC\") and id", log_constants::ERROR_LABEL);
+        return
+    }
+    let target: &str = &args[0].to_string().trim().to_uppercase();
+    let target_id: &str = &args[1].to_string().trim().to_string();
+    match target {
+        "TOPIC" => topics.compact(target_id),
+        _ => println!("{} {} Is not a valid type.", log_constants::ERROR_LABEL, target)
+    }
 }
 
 fn health_check(db_home: &str) -> bool {

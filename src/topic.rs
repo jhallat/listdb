@@ -296,4 +296,8 @@ impl Topics {
     let mut topic = Topic::new(topic_id, &topic_path);
     topic.open();
   }
+
+  pub fn compact(&self, topic_id: &str) {
+    println!("Not currently implemented");
+  }
 }
