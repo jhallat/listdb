@@ -221,7 +221,11 @@ impl Topic {
     let time_stamp: DateTime<Local> = Local::now();
     let move_path = format!("{}.bkp_{}", self.path, time_stamp.format("%Y%m%d_%H%M%S%f"));
     fs::rename(&self.path, &move_path);
-    println!("Not implemented - copy current file to {}", move_path);
+    File::create(&self.path);
+    for record in self.record_map.values() {
+      self.append_data(&record);
+    }
+    self.refresh();
   }
 
   fn open(&mut self) {
