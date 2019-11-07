@@ -40,7 +40,7 @@ Generates a list of topics
 
 **type** := The object type to be listed. Currently only "TOPIC" is supported.
 
-![create example](img/create-example.jpg)
+![create example](img/list-example.jpg)
 
 ### STATUS
 
