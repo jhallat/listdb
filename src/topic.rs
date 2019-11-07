@@ -146,6 +146,36 @@ impl Topic {
     
   }
 
+  fn update(&mut self, args: &[&str]) {
+    if args.len() == 0 {
+      println!("Nothing to delete. Line number required");
+      return
+    }
+    let index = args[0].to_string().parse::<usize>().unwrap();
+    let record = &self.line_map.get(&index);
+    if record.is_some() {
+      let selected_record = record.unwrap();
+      let record_value = self.record_map.get(selected_record).unwrap();
+      let content = record_value.content.clone();
+      println!("Update \"{}\"", content);
+      print!("new value ? ");
+      io::stdout().flush().expect("Failed to flush stdout");
+      let new_value = Topic::read_line();
+      if !new_value.to_string().is_empty() {
+        let updated_record = Record {
+          id: selected_record.clone(),
+          action: ACTION_UPDATE.to_string(),
+          content: new_value.to_string()
+        };
+        self.append_data(&updated_record);
+        self.record_map.insert(updated_record.id.clone(), updated_record.clone());
+        println!("\"{}\" updated to \"{}\"", content, updated_record.content);        
+      }
+    } else {
+      println!("No item found at position {}", index);
+    }  
+  }
+
   fn list(&self) {
     println!("----------------------------------------------");
     let record_count = self.record_map.len();
@@ -175,6 +205,7 @@ impl Topic {
         "CLOSE" => break,
         "ADD" => self.add(&command_line[1..]),
         "DELETE" => self.delete(&command_line[1..]),
+        "UPDATE" => self.update(&command_line[1..]),
         "LIST" => self.list(),
         _ => println!("Not a valid command")
       }
