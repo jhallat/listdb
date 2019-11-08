@@ -41,7 +41,6 @@ fn main() {
             Unknown => {
                 let command: &str = &command_line[0].to_string().trim().to_uppercase();
                 match command {
-                    "CREATE" => create_command(&topics, &command_line[1..]),
                     "OPEN" => open_item(&topics, &command_line[1..]),
                     "COMPACT" => compact_item(&topics, &command_line[1..]),
                     _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
@@ -51,7 +50,7 @@ fn main() {
             Data(data) => display_data(data),
             ROk(message) => println!("{}", message),
             Invalid(message) => println!("INVALID: {}", message),
-            _ => println!("Something went wrong")
+            Error(message) => println!("ERROR: {}", message)
         }
 
     }
@@ -119,17 +118,3 @@ fn health_check(db_home: &str) -> bool {
     return true
 }
 
-fn create_command(topics: &Topics, args: &[&str]) {
-
-    if args.len() != 2 {
-        println!("{} You messed up!!! Create takes two parameters.", log_constants::ERROR_LABEL);
-        return
-    }    
-    
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    match target {
-        "TOPIC" => topics.create(args[1]),
-        _ => println!("{} I don't know how to create a {}", log_constants::ERROR_LABEL, args[0])
-    }
-
-}
