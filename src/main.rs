@@ -1,5 +1,6 @@
 extern crate uuid;
 extern crate chrono;
+extern crate listdb_engine;
 
 use std::io;
 use std::io::prelude::*;
@@ -7,6 +8,7 @@ use std::path::Path;
 use properties::Properties;
 use topic::Topics;
 use std::fs;
+use listdb_engine::{DBEngine, DBResponse::OK};
 
 mod properties;
 mod log_constants;
@@ -25,6 +27,7 @@ fn main() {
         db_home: db_home.clone()
     };
     let passed = health_check(&db_home);
+    let db_engine = DBEngine::new(&db_home);
     if passed {
         println!("Health check passed");
     } else {
@@ -34,6 +37,10 @@ fn main() {
         display_prompt();
         let line = read_line();
         let command_line: Vec<&str> = line.split(' ').collect();
+        match db_engine.process(&line) {
+            OK(message) => println!("{}", message),
+            _ => println!("Something went wrong")
+        }
         let command: &str = &command_line[0].to_string().trim().to_uppercase();
         match command {
             "EXIT" => break,
