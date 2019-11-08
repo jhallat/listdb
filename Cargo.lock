@@ -56,7 +56,7 @@ dependencies = [
 [[package]]
 name = "listdb-engine"
 version = "0.1.0"
-source = "git+https://github.com/jhallat/listdb-engine-rust#c3af27bc2dead358eda15d179e5e66c23e6e779f"
+source = "git+https://github.com/jhallat/listdb-engine-rust#b6d72dd7cf8abdc086d5b15bba5a18bf685ff33b"
 dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",

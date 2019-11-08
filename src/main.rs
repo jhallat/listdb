@@ -42,7 +42,6 @@ fn main() {
                 let command: &str = &command_line[0].to_string().trim().to_uppercase();
                 match command {
                     "CREATE" => create_command(&topics, &command_line[1..]),
-                    "STATUS" => display_status(&properties),
                     "OPEN" => open_item(&topics, &command_line[1..]),
                     "COMPACT" => compact_item(&topics, &command_line[1..]),
                     _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
@@ -79,13 +78,7 @@ fn display_data(data: Vec<String>) {
     println!("----------------------------------------------");
 }
 
-fn display_status(properties: &Properties) {
-    let contents = properties.contents();
-    println!("");
-    println!("Properties");
-    println!("----------------------------------------------");
-    println!("{}", contents);
-}
+
 
 
 fn open_item(topics: &Topics, args: &[&str]) {
