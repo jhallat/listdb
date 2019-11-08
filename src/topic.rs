@@ -277,18 +277,6 @@ impl Topics {
       }
   }
 
-  pub fn list(&self) {
-
-      let files = fs::read_dir(self.db_home.clone()).unwrap();
-      for file in files {
-         let path = file.unwrap().path();
-         let topic_name = path.file_stem().unwrap().to_str().unwrap(); 
-         let topic_type = path.extension().unwrap().to_str().unwrap();
-         if topic_type == "tpc" {
-            println!("{}", topic_name);
-        }
-      }
-  }
 
   fn topic_path(&self, topic_id: &str) -> String {
     format!("{}\\{}.tpc", self.db_home, topic_id)

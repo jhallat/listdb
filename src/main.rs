@@ -8,7 +8,7 @@ use std::path::Path;
 use properties::Properties;
 use topic::Topics;
 use std::fs;
-use listdb_engine::{DBEngine, DBResponse::OK};
+use listdb_engine::{DBEngine, DBResponse::*};
 
 mod properties;
 mod log_constants;
@@ -38,19 +38,23 @@ fn main() {
         let line = read_line();
         let command_line: Vec<&str> = line.split(' ').collect();
         match db_engine.process(&line) {
-            OK(message) => println!("{}", message),
+            Unknown => {
+                let command: &str = &command_line[0].to_string().trim().to_uppercase();
+                match command {
+                    "CREATE" => create_command(&topics, &command_line[1..]),
+                    "STATUS" => display_status(&properties),
+                    "OPEN" => open_item(&topics, &command_line[1..]),
+                    "COMPACT" => compact_item(&topics, &command_line[1..]),
+                    _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
+                }
+            },
+            Exit => break,
+            Data(data) => display_data(data),
+            ROk(message) => println!("{}", message),
+            Invalid(message) => println!("INVALID: {}", message),
             _ => println!("Something went wrong")
         }
-        let command: &str = &command_line[0].to_string().trim().to_uppercase();
-        match command {
-            "EXIT" => break,
-            "CREATE" => create_command(&topics, &command_line[1..]),
-            "LIST" => list(&topics, &command_line[1..]),
-            "STATUS" => display_status(&properties),
-            "OPEN" => open_item(&topics, &command_line[1..]),
-            "COMPACT" => compact_item(&topics, &command_line[1..]),
-            _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
-        }
+
     }
 }
 
@@ -67,28 +71,20 @@ fn display_prompt() {
     io::stdout().flush().expect("Failed to flush stdout");
 }
 
+fn display_data(data: Vec<String>) {
+    println!("----------------------------------------------");
+    for item in data {
+        println!("{}", item);
+    }
+    println!("----------------------------------------------");
+}
+
 fn display_status(properties: &Properties) {
     let contents = properties.contents();
     println!("");
     println!("Properties");
     println!("----------------------------------------------");
     println!("{}", contents);
-}
-
-fn list(topics: &Topics, args: &[&str]) {
-    if args.len() == 0 {
-        println!("{} I need to know what you want a list of.", log_constants::ERROR_LABEL);
-        return
-    }
-    if args.len() > 1 {
-        println!("{} Only one thing at a time please.", log_constants::ERROR_LABEL);
-        return
-    }
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    match target {
-        "TOPIC" | "TOPICS" => topics.list(),
-        _ => println!("{} NOOOOO!!!!! That is not an option.", log_constants::ERROR_LABEL)
-    }
 }
 
 
