@@ -22,24 +22,54 @@ fn main() {
     let passed = health_check(&db_home);
     let mut db_engine = DBEngine::new(&db_home);
     if passed {
-        println!("Health check passed");
+        loop {
+            display_prompt(&context);
+            let line = read_line();
+            match db_engine.request(&line) {
+                Unknown => invalid("Unknown request"),
+                Exit => break,
+                Data(data) => data_table(&data),
+                ROk(message) => ok(&message),
+                Invalid(message) => invalid(&message),
+                Error(message) => error(&message),
+                OpenContext(message) => context = message.clone(),
+                CloseContext => println!("Not expecting this response"),
+            }
+        }
     } else {
-        println!("I am not feeling well. I am going to rest now.");
+        error("Unable to access data folder");
     }
-    loop {
-        display_prompt(&context);
-        let line = read_line();
-        match db_engine.request(&line) {
-            Unknown => println!("INVALID: Unknown request"),
-            Exit => break,
-            Data(data) => display_data(data),
-            ROk(message) => println!("{}", message),
-            Invalid(message) => println!("INVALID: {}", message),
-            Error(message) => println!("ERROR: {}", message),
-            OpenContext(message) => context = message.clone(),
-            CloseContext => println!("Not expecting this response"),
+}
+
+fn repeat(item: &str, count: usize) -> String {
+    let mut repeated = String::new();
+    for _ in 0..count {
+        repeated.push_str(item);
+    }
+    repeated
+}
+
+fn right_pad(item: &str, count: usize) -> String {
+    let mut padded_string = String::new();
+    padded_string.push_str(item);
+    if padded_string.len() < count {
+        for _ in padded_string.len()..count {
+            padded_string.push_str(" ");
         }
     }
+    padded_string
+}
+
+fn error(message: &str) {
+    println!("ERROR: {}", message);
+}
+
+fn invalid(message: &str) {
+    println!("INVALID: {}", message);
+}
+
+fn ok(message: &str) {
+    println!("OK: {}", message);
 }
 
 fn read_line() -> String {
@@ -60,12 +90,20 @@ fn display_prompt(context: &str) {
     io::stdout().flush().expect("Failed to flush stdout");
 }
 
-fn display_data(data: Vec<String>) {
-    println!("----------------------------------------------");
+fn data_table(data: &Vec<String>) {
+    let mut longest = 0;
     for item in data {
-        println!("{}", item);
+        if item.len() > longest {
+            longest = item.len();
+        }
     }
-    println!("----------------------------------------------");
+    let top_border = repeat("\u{2500}", longest + 2);
+    println!("\u{250C}{}\u{2510}", top_border);
+    for item in data {
+        let padded = right_pad(&item, longest);
+        println!("\u{2502} {} \u{2502}", padded);
+    }
+    println!("\u{2514}{}\u{2518}", top_border);
 }
 
 fn health_check(db_home: &str) -> bool {
