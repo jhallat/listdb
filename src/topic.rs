@@ -1,41 +1,33 @@
-use std::path::Path;
-use std::fs::File;
-use std::fs;
-use std::io;
-use std::io::prelude::*;
-use std::fs::OpenOptions;
-use std::io::Write;
-use uuid::Uuid;
-use std::collections::HashMap;
 use chrono::prelude::*;
+use std::collections::HashMap;
+use std::fs;
+use std::fs::File;
+use std::fs::OpenOptions;
+use std::io::prelude::*;
+use std::io::Write;
+use std::path::Path;
 
-const ACTION_ADD: &str = "A";
 const ACTION_DELETE: &str = "D";
-const ACTION_UPDATE: &str = "U";
 
 #[derive(Clone)]
 struct Record {
   id: String,
-  action: String, 
-  content: String
+  action: String,
+  content: String,
 }
-
 
 struct Topic {
   path: String,
-  id: String,
   line_map: HashMap<usize, String>,
-  record_map: HashMap<String, Record>
+  record_map: HashMap<String, Record>,
 }
 
 impl Topic {
-
   pub fn new(topic_id: &str, topic_path: &str) -> Topic {
     let mut topic = Topic {
       path: topic_path.to_string(),
-      id: topic_id.to_string(),
       line_map: HashMap::new(),
-      record_map: HashMap::new()
+      record_map: HashMap::new(),
     };
     let records = Topic::get_records(topic_path);
     for record in records {
@@ -67,133 +59,17 @@ impl Topic {
       let record = Record {
         id: line[0..36].to_string(),
         action: line[36..37].to_string(),
-        content: line[37..].to_string()
+        content: line[37..].to_string(),
       };
       records.push(record);
     }
     return records;
   }
 
-  fn display_prompt(topic_id: &str) {
-      print!("({})> ", topic_id);
-      io::stdout().flush().expect("Failed to flush stdout");
-  }
-
-  fn read_line() -> String {
-      let mut input = String::new();
-      io::stdin()
-          .read_line(&mut input)
-          .expect("Failed to read line");
-      input.trim().to_string()    
-  }
-
-  fn get_confirmation() -> bool {
-    print!("y/n ? ");
-    io::stdout().flush().expect("Failed to flush stdout");
-    let response = Topic::read_line();
-    response == "Y" || response == "y"
-  }
-
   fn append_data(&self, record: &Record) {
     let output = format!("{}{}{}\n", record.id, record.action, record.content);
     let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
     file.write_all(output.as_bytes()).expect("Add failed");
-  }
-
-  fn add(&mut self, args: &[&str]) {
-    if args.len() == 0 {
-      println!("Nothing to add");
-      return
-    } 
-    let output = args.join(" ");
-    let id = Uuid::new_v4();
-    let record = Record {
-      id: id.to_string(),
-      action: ACTION_ADD.to_string(),
-      content: output
-    };
-    self.append_data(&record);
-    let index = self.line_map.len() + 1;
-    self.line_map.insert(index, record.id.clone());
-    self.record_map.insert(record.id.clone(), record.clone());
-  }
-
-  fn delete(&mut self, args: &[&str]) {
-    if args.len() == 0 {
-      println!("Nothing to delete. Line number required");
-      return
-    }
-    let index = args[0].to_string().parse::<usize>().unwrap();
-    let record = &self.line_map.get(&index);
-    if record.is_some() {
-      let selected_record = record.unwrap();
-      let record_value = self.record_map.get(selected_record).unwrap();
-      let content = record_value.content.clone();
-      println!("Confirm deletion of \"{}\"", content);
-      let confirmed = Topic::get_confirmation();
-      if confirmed {
-        let deleted_record = Record {
-          id: selected_record.clone(),
-          action: ACTION_DELETE.to_string(),
-          content: "-".to_string()
-        };
-        self.append_data(&deleted_record);
-        self.record_map.insert(deleted_record.id.clone(), deleted_record.clone());
-        println!("\"{}\" deleted", content);
-      }
-    } else {
-      println!("No item found at position {}", index);
-    }
-    
-  }
-
-  fn update(&mut self, args: &[&str]) {
-    if args.len() == 0 {
-      println!("Nothing to delete. Line number required");
-      return
-    }
-    let index = args[0].to_string().parse::<usize>().unwrap();
-    let record = &self.line_map.get(&index);
-    if record.is_some() {
-      let selected_record = record.unwrap();
-      let record_value = self.record_map.get(selected_record).unwrap();
-      let content = record_value.content.clone();
-      println!("Update \"{}\"", content);
-      print!("new value ? ");
-      io::stdout().flush().expect("Failed to flush stdout");
-      let new_value = Topic::read_line();
-      if !new_value.to_string().is_empty() {
-        let updated_record = Record {
-          id: selected_record.clone(),
-          action: ACTION_UPDATE.to_string(),
-          content: new_value.to_string()
-        };
-        self.append_data(&updated_record);
-        self.record_map.insert(updated_record.id.clone(), updated_record.clone());
-        println!("\"{}\" updated to \"{}\"", content, updated_record.content);        
-      }
-    } else {
-      println!("No item found at position {}", index);
-    }  
-  }
-
-  fn list(&self) {
-    println!("----------------------------------------------");
-    let record_count = self.record_map.len();
-    for index in 1..record_count + 1 {
-      let id = self.line_map.get(&index);
-      if id.is_some() {
-        let record_id = id.unwrap();
-        let record = self.record_map.get(record_id);
-        if record.is_some() {
-          let record_value = record.unwrap();
-          if record_value.action != ACTION_DELETE {
-            println!("{}: {}", index, record_value.content);
-          }
-        }
-      }
-    }
-    println!("----------------------------------------------");
   }
 
   fn refresh(&mut self) {
@@ -227,36 +103,15 @@ impl Topic {
     }
     self.refresh();
   }
-
-  fn open(&mut self) {
-    loop {
-      Topic::display_prompt(&self.id);
-      let line = Topic::read_line();
-      let command_line: Vec<&str> = line.split(' ').collect();
-      let command: &str = &command_line[0].to_string().trim().to_uppercase();
-      match command {
-        "CLOSE" => break,
-        "ADD" => self.add(&command_line[1..]),
-        "DELETE" => self.delete(&command_line[1..]),
-        "UPDATE" => self.update(&command_line[1..]),
-        "LIST" => self.list(),
-        "REFRESH" => self.refresh(),
-        _ => println!("Not a valid command")
-      }
-    }
-
-  }
-
 }
 
 /// Manages topics in the database
 pub struct Topics {
   /// Location of the database
-  pub db_home: String
+  pub db_home: String,
 }
 
 impl Topics {
-
   fn topic_path(&self, topic_id: &str) -> String {
     format!("{}\\{}.tpc", self.db_home, topic_id)
   }
@@ -266,20 +121,10 @@ impl Topics {
     Path::new(&topic_path).exists()
   }
 
-  pub fn open(&self, topic_id: &str) {
+  pub fn compact(&self, topic_id: &str) {
     if !self.topic_exists(&topic_id) {
       println!("{} does not exist.", topic_id);
-      return
-    }
-    let topic_path = self.topic_path(topic_id);
-    let mut topic = Topic::new(topic_id, &topic_path);
-    topic.open();
-  }
-
-  pub fn compact(&self, topic_id: &str) {
-        if !self.topic_exists(&topic_id) {
-      println!("{} does not exist.", topic_id);
-      return
+      return;
     }
     let topic_path = self.topic_path(topic_id);
     let mut topic = Topic::new(topic_id, &topic_path);
