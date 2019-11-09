@@ -1,6 +1,4 @@
-extern crate chrono;
 extern crate listdb_engine;
-extern crate uuid;
 
 use listdb_engine::dbprocess::DBResponse::*;
 use listdb_engine::DBEngine;
@@ -9,11 +7,8 @@ use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
-use topic::Topics;
 
-mod log_constants;
 mod properties;
-mod topic;
 
 const DATA_HOME_PROPERTY: &str = "data.home";
 
@@ -24,9 +19,6 @@ fn main() {
     let mut context = "".to_string();
     properties.load(PROPERTY_FILE);
     let db_home = properties.get(DATA_HOME_PROPERTY);
-    let topics = Topics {
-        db_home: db_home.clone(),
-    };
     let passed = health_check(&db_home);
     let mut db_engine = DBEngine::new(&db_home);
     if passed {
@@ -37,15 +29,8 @@ fn main() {
     loop {
         display_prompt(&context);
         let line = read_line();
-        let command_line: Vec<&str> = line.split(' ').collect();
         match db_engine.request(&line) {
-            Unknown => {
-                let command: &str = &command_line[0].to_string().trim().to_uppercase();
-                match command {
-                    "COMPACT" => compact_item(&topics, &command_line[1..]),
-                    _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL),
-                }
-            }
+            Unknown => println!("INVALID: Unknown request"),
             Exit => break,
             Data(data) => display_data(data),
             ROk(message) => println!("{}", message),
@@ -81,26 +66,6 @@ fn display_data(data: Vec<String>) {
         println!("{}", item);
     }
     println!("----------------------------------------------");
-}
-
-fn compact_item(topics: &Topics, args: &[&str]) {
-    if args.len() != 2 {
-        println!(
-            "{} OPEN requires a type (i.e \"TOPIC\") and id",
-            log_constants::ERROR_LABEL
-        );
-        return;
-    }
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    let target_id: &str = &args[1].to_string().trim().to_string();
-    match target {
-        "TOPIC" => topics.compact(target_id),
-        _ => println!(
-            "{} {} Is not a valid type.",
-            log_constants::ERROR_LABEL,
-            target
-        ),
-    }
 }
 
 fn health_check(db_home: &str) -> bool {

@@ -48,15 +48,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "listdb"
 version = "0.1.0"
 dependencies = [
- "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "listdb-engine 0.1.0 (git+https://github.com/jhallat/listdb-engine-rust)",
- "uuid 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "listdb-engine"
 version = "0.1.0"
-source = "git+https://github.com/jhallat/listdb-engine-rust#49590ae1ae48158c00447a2450254db34bc698ae"
+source = "git+https://github.com/jhallat/listdb-engine-rust#ebf47c8323d18100cd42c182f28d8182ff6d8c12"
 dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
