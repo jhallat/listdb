@@ -1,1 +1,0 @@
-pub const ERROR_LABEL : &str = "\u{CA0}_\u{CA0} ";

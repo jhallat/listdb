@@ -54,20 +54,13 @@ Displays a list of the current properties of the database.
 
 ### Next Items to be implemented
 
-**Phase I**
-
-- [x] Confirm Deletion
-- [x] Update Record
-- [x] Add refresh topic function
-- [ ] Add compact topic function
-
 **Phase II**
 
 - [ ] Use terminal for standard output
 - [ ] Add fields to list
-- [ ] Separate CLI and Server
+- [x] Separate CLI and Server
 
-**Phase IV+**
+**Phase III+**
 
 - [ ] Undo function for CLI
 - [ ] Filter function

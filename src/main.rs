@@ -1,50 +1,75 @@
-extern crate uuid;
-extern crate chrono;
+extern crate listdb_engine;
 
+use listdb_engine::dbprocess::DBResponse::*;
+use listdb_engine::DBEngine;
+use properties::Properties;
+use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
-use properties::Properties;
-use topic::Topics;
-use std::fs;
 
 mod properties;
-mod log_constants;
-mod topic;
 
-const DATA_HOME_PROPERTY : &str = "data.home";
+const DATA_HOME_PROPERTY: &str = "data.home";
 
-const PROPERTY_FILE : &str = "listdb.properties";
+const PROPERTY_FILE: &str = "listdb.properties";
 
 fn main() {
-
     let mut properties = Properties::new();
+    let mut context = "".to_string();
     properties.load(PROPERTY_FILE);
     let db_home = properties.get(DATA_HOME_PROPERTY);
-    let topics = Topics {
-        db_home: db_home.clone()
-    };
     let passed = health_check(&db_home);
+    let mut db_engine = DBEngine::new(&db_home);
     if passed {
-        println!("Health check passed");
+        loop {
+            display_prompt(&context);
+            let line = read_line();
+            match db_engine.request(&line) {
+                Unknown => invalid("Unknown request"),
+                Exit => break,
+                Data(data) => data_table(&data),
+                ROk(message) => ok(&message),
+                Invalid(message) => invalid(&message),
+                Error(message) => error(&message),
+                OpenContext(message) => context = message.clone(),
+                CloseContext => println!("Not expecting this response"),
+            }
+        }
     } else {
-        println!("I am not feeling well. I am going to rest now.");
+        error("Unable to access data folder");
     }
-    loop {
-        display_prompt();
-        let line = read_line();
-        let command_line: Vec<&str> = line.split(' ').collect();
-        let command: &str = &command_line[0].to_string().trim().to_uppercase();
-        match command {
-            "EXIT" => break,
-            "CREATE" => create_command(&topics, &command_line[1..]),
-            "LIST" => list(&topics, &command_line[1..]),
-            "STATUS" => display_status(&properties),
-            "OPEN" => open_item(&topics, &command_line[1..]),
-            "COMPACT" => compact_item(&topics, &command_line[1..]),
-            _ => println!("{} I just don't understand you", log_constants::ERROR_LABEL)
+}
+
+fn repeat(item: &str, count: usize) -> String {
+    let mut repeated = String::new();
+    for _ in 0..count {
+        repeated.push_str(item);
+    }
+    repeated
+}
+
+fn right_pad(item: &str, count: usize) -> String {
+    let mut padded_string = String::new();
+    padded_string.push_str(item);
+    if padded_string.len() < count {
+        for _ in padded_string.len()..count {
+            padded_string.push_str(" ");
         }
     }
+    padded_string
+}
+
+fn error(message: &str) {
+    println!("ERROR: {}", message);
+}
+
+fn invalid(message: &str) {
+    println!("INVALID: {}", message);
+}
+
+fn ok(message: &str) {
+    println!("OK: {}", message);
 }
 
 fn read_line() -> String {
@@ -52,88 +77,41 @@ fn read_line() -> String {
     io::stdin()
         .read_line(&mut input)
         .expect("Failed to read line");
-    input.trim().to_string()    
+    input.trim().to_string()
 }
 
-fn display_prompt() {
-    print!("> ");
+fn display_prompt(context: &str) {
+    let prompt = if context.len() == 0 {
+        "".to_string()
+    } else {
+        format!("({})", context)
+    };
+    print!("{}> ", prompt);
     io::stdout().flush().expect("Failed to flush stdout");
 }
 
-fn display_status(properties: &Properties) {
-    let contents = properties.contents();
-    println!("");
-    println!("Properties");
-    println!("----------------------------------------------");
-    println!("{}", contents);
-}
-
-fn list(topics: &Topics, args: &[&str]) {
-    if args.len() == 0 {
-        println!("{} I need to know what you want a list of.", log_constants::ERROR_LABEL);
-        return
+fn data_table(data: &Vec<String>) {
+    let mut longest = 0;
+    for item in data {
+        if item.len() > longest {
+            longest = item.len();
+        }
     }
-    if args.len() > 1 {
-        println!("{} Only one thing at a time please.", log_constants::ERROR_LABEL);
-        return
+    let top_border = repeat("\u{2500}", longest + 2);
+    println!("\u{250C}{}\u{2510}", top_border);
+    for item in data {
+        let padded = right_pad(&item, longest);
+        println!("\u{2502} {} \u{2502}", padded);
     }
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    match target {
-        "TOPIC" | "TOPICS" => topics.list(),
-        _ => println!("{} NOOOOO!!!!! That is not an option.", log_constants::ERROR_LABEL)
-    }
-}
-
-
-fn open_item(topics: &Topics, args: &[&str]) {
-    
-    if args.len() != 2 {
-        println!("{} OPEN requires a type (i.e \"TOPIC\") and id.", log_constants::ERROR_LABEL);
-        return
-    }
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    let target_id: &str = &args[1].to_string().trim().to_string();
-    match target {
-        "TOPIC" => topics.open(target_id),
-        _ => println!("{} {} Is not a valid type.", log_constants::ERROR_LABEL, target)
-    }
-    
-}
-
-fn compact_item(topics: &Topics, args: &[&str]) {
-    if args.len() != 2 {
-        println!("{} OPEN requires a type (i.e \"TOPIC\") and id", log_constants::ERROR_LABEL);
-        return
-    }
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    let target_id: &str = &args[1].to_string().trim().to_string();
-    match target {
-        "TOPIC" => topics.compact(target_id),
-        _ => println!("{} {} Is not a valid type.", log_constants::ERROR_LABEL, target)
-    }
+    println!("\u{2514}{}\u{2518}", top_border);
 }
 
 fn health_check(db_home: &str) -> bool {
     if !Path::new(&db_home).exists() {
         match fs::create_dir_all(&db_home) {
             Ok(_) => return true,
-            Err(_) => return false
+            Err(_) => return false,
         }
     }
-    return true
-}
-
-fn create_command(topics: &Topics, args: &[&str]) {
-
-    if args.len() != 2 {
-        println!("{} You messed up!!! Create takes two parameters.", log_constants::ERROR_LABEL);
-        return
-    }    
-    
-    let target: &str = &args[0].to_string().trim().to_uppercase();
-    match target {
-        "TOPIC" => topics.create(args[1]),
-        _ => println!("{} I don't know how to create a {}", log_constants::ERROR_LABEL, args[0])
-    }
-
+    return true;
 }
