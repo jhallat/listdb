@@ -1,7 +1,12 @@
 extern crate listdb_engine;
 
+#[macro_use]
+extern crate log;
+extern crate env_logger;
+
 use listdb_engine::dbprocess::DBResponse::*;
 use listdb_engine::DBEngine;
+use log::debug;
 use properties::Properties;
 use std::collections::HashMap;
 use std::fs;
@@ -16,6 +21,7 @@ const DATA_HOME_PROPERTY: &str = "data.home";
 const PROPERTY_FILE: &str = "listdb.properties";
 
 fn main() {
+    env_logger::init();
     let mut line_map: HashMap<usize, String> = HashMap::new();
     let mut properties = Properties::new();
     let mut context = "".to_string();
@@ -27,8 +33,10 @@ fn main() {
         loop {
             display_prompt(&context);
             let line = read_line();
+            let command_line = intercept(&line, &line_map);
             //TODO handle deletes with line map
-            match db_engine.request(&line) {
+            debug!("{}", command_line);
+            match db_engine.request(&command_line) {
                 Unknown => invalid("Unknown request"),
                 Exit => break,
                 Data(data) => data_table(&mut line_map, &data),
@@ -42,6 +50,28 @@ fn main() {
     } else {
         error("Unable to access data folder");
     }
+}
+
+fn intercept(item: &str, line_map: &HashMap<usize, String>) -> String {
+    let test_string = item.trim_start();
+    if test_string.to_ascii_uppercase().starts_with("DELETE")
+        || test_string.to_ascii_uppercase().starts_with("UPDATE")
+    {
+        let mut tokens: Vec<&str> = item.split(" ").collect();
+        if tokens.len() < 2 {
+            return item.to_string(); //This string is invalid anyway
+        }
+        let command = tokens.remove(0);
+        let line_no = tokens.remove(0);
+        if !line_no.parse::<usize>().is_ok() {
+            return item.to_string(); //This string is invalid anyway
+        }
+        let line_id = line_no.parse::<usize>().unwrap();
+        let id = line_map.get(&line_id).unwrap();
+
+        return format!("{} {} {}", command, id, tokens.join(" "));
+    }
+    item.to_string()
 }
 
 fn repeat(item: &str, count: usize) -> String {
