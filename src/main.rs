@@ -1,8 +1,7 @@
 extern crate listdb_engine;
 
-#[macro_use]
-extern crate log;
 extern crate env_logger;
+extern crate log;
 
 use listdb_engine::dbprocess::DBResponse::*;
 use listdb_engine::DBEngine;
@@ -37,7 +36,7 @@ fn main() {
             //TODO handle deletes with line map
             debug!("{}", command_line);
             match db_engine.request(&command_line) {
-                Unknown => invalid("Unknown request"),
+                Unknown(message) => invalid(&format!("Unknown request {}", message)),
                 Exit => break,
                 Data(data) => data_table(&mut line_map, &data),
                 ROk(message) => ok(&message),
@@ -126,7 +125,7 @@ fn read_line() -> String {
 
 fn display_prompt(context: &str) {
     let prompt = if context.len() == 0 {
-        "".to_string()
+        "(\\)".to_string()
     } else {
         format!("({})", context)
     };
