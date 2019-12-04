@@ -43,6 +43,7 @@ fn main() {
                 Invalid(message) => invalid(&message),
                 Error(message) => error(&message),
                 OpenContext(message) => context = message.clone(),
+                Created(message) => created(&message),
                 CloseContext => println!("Not expecting this response"),
             }
         }
@@ -109,6 +110,10 @@ fn error(message: &str) {
 
 fn invalid(message: &str) {
     println!("INVALID: {}", message);
+}
+
+fn created(message: &str) {
+    println!("CREATED: {}", message);
 }
 
 fn ok(message: &str) {
